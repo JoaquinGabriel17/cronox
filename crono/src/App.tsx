@@ -52,13 +52,13 @@ function App() {
               key={act.id}
               onClick={() => startTimer(act.id)}
               className={`p-4 rounded text-white font-bold text-left transition-all ${
-                activeSession?.activityId === act.id 
+                activeSession?.id === act.id 
                   ? 'ring-4 ring-green-400 scale-105' // Estilo si está activa
                   : ''
               } ${act.color}`} // Usamos el color guardado (bg-blue-500)
             >
               {act.name}
-              {activeSession?.activityId === act.id && (
+              {activeSession?.id === act.id && (
                 <span className="block text-sm font-light mt-1">Corriendo...</span>
               )}
             </button>
@@ -82,7 +82,7 @@ function App() {
         <ul className="space-y-2 text-sm text-gray-600">
           {history.length === 0 && <p>No hay historial aún.</p>}
           {history.map((session) => {
-            const activity = activities.find(a => a.id === session.activityId);
+            const activity = activities.find(a => a.id === session.id);
             return (
               <li key={session.id} className="border-b pb-2">
                 <span className="font-bold">{activity?.name || 'Borrado'}</span>

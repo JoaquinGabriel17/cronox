@@ -1,19 +1,17 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Activity, Session } from '../types';
+import type { Activity } from '../types';
 
 interface AppState {
   // --- ESTADO (DATOS) ---
   activities: Activity[];
-  sessions: Session[]; // Sesiones
-  history: Session[]; // Sesiones terminadas
-  activeSession: Session | null; // La sesión que está corriendo actualmente (o null)
+  history: Activity[]; // Sesiones terminadas
+  activeSession: Activity | null; // La sesión que está corriendo actualmente (o null)
 
   // --- ACCIONES (FUNCIONES) ---
-  addActivity: (name: string, color: string) => void; // Agregar actividad
+  addActivity: (name: string, color: string, endTime?: number, description?: string) => void; // Agregar actividad
   removeActivity: (id: string) => void; // Eliminar actividad
 
-  addSession: (activityId: string, )
   startTimer: (sessionId: string) => void; // Iniciar sesión
   stopTimer: () => void; // Detener sesión actualmente activa
   
@@ -27,15 +25,18 @@ export const useStore = create<AppState>()(
       // Estado inicial
       activities: [],
       history: [],
-      sessions: [],
       activeSession: null,
 
       // Acciones implementation
-      addActivity: (name, color) => {
+      addActivity: (name, color, endTime, description) => {
         const newActivity: Activity = {
           id: crypto.randomUUID(), // Genera un ID único nativo del navegador
           name,
           color,
+          startTime: Date.now(),
+          endTime: endTime || 0,
+          description: description || '',
+          timeLeft:0,
         };
         // Actualizamos el array de actividades manteniendo las anteriores
         set((state) => ({ activities: [...state.activities, newActivity] }));
@@ -55,30 +56,13 @@ export const useStore = create<AppState>()(
           stopTimer();
         }
 
-        const newSession: Session = {
-          id: crypto.randomUUID(),
-          sessionId,
-          startTime: Date.now(),
-          // endTime es undefined
-        };
-
-        set({ activeSession: newSession });
+    
       },
 
       stopTimer: () => {
         const { activeSession } = get();
         if (!activeSession) return;
 
-        // Finalizamos la sesión actual
-        const completedSession: Session = {
-          ...activeSession,
-          endTime: Date.now(),
-        };
-
-        set((state) => ({
-          history: [completedSession, ...state.history], // Agregamos al principio del historial
-          activeSession: null, // Ya no hay nada corriendo
-        }));
       },
 
       deleteSession: (sessionId) => {
