@@ -3,16 +3,19 @@ import { useStore } from './store/index';
 
 function App() {
   // Extraemos lo que necesitamos del store
-  const { 
-    activities, 
-    activeSession, 
-    addActivity, 
-    startTimer, 
-    stopTimer, 
-    history 
+  const {
+    activities,
+    activeActivities,
+    addActivity,
+    startActivity,
+    stopActivity,
+    clearActiveActivities,
   } = useStore();
 
   const [newActName, setNewActName] = useState('');
+
+  const defaultDurationMs = 30 * 60 * 1000;
+  const activeIds = new Set(activeActivities.map((activity) => activity.id));
 
   return (
     <div className="p-10 max-w-2xl mx-auto space-y-8 bg-gray-50 min-h-screen">
@@ -29,11 +32,11 @@ function App() {
             value={newActName}
             onChange={(e) => setNewActName(e.target.value)}
           />
-          <button 
+          <button
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             onClick={() => {
               if (newActName) {
-                addActivity(newActName, 'bg-blue-500'); // Color harcodeado por ahora
+                addActivity(newActName, 'bg-blue-500', defaultDurationMs); // Color harcodeado por ahora
                 setNewActName('');
               }
             }}
@@ -47,53 +50,34 @@ function App() {
       <div className="bg-white p-4 rounded shadow space-y-4">
         <h2 className="text-xl font-semibold">2. Actividades (Haz click para iniciar)</h2>
         <div className="grid grid-cols-2 gap-4">
-          {activities.map((act) => (
-            <button
-              key={act.id}
-              onClick={() => startTimer(act.id)}
-              className={`p-4 rounded text-white font-bold text-left transition-all ${
-                activeSession?.id === act.id 
-                  ? 'ring-4 ring-green-400 scale-105' // Estilo si está activa
-                  : ''
-              } ${act.color}`} // Usamos el color guardado (bg-blue-500)
-            >
-              {act.name}
-              {activeSession?.id === act.id && (
-                <span className="block text-sm font-light mt-1">Corriendo...</span>
-              )}
-            </button>
-          ))}
-        </div>
-        
-        {/* Botón de STOP global */}
-        {activeSession && (
-          <button 
-            onClick={stopTimer}
-            className="w-full bg-red-500 text-white py-4 rounded-xl font-bold text-xl hover:bg-red-600 mt-4"
-          >
-            DETENER SESIÓN ACTUAL
-          </button>
-        )}
-      </div>
-
-      {/* SECCIÓN 3: Historial (Debug) */}
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-semibold mb-2">3. Historial (Logs)</h2>
-        <ul className="space-y-2 text-sm text-gray-600">
-          {history.length === 0 && <p>No hay historial aún.</p>}
-          {history.map((session) => {
-            const activity = activities.find(a => a.id === session.id);
+          {activities.map((act) => {
+            const isActive = activeIds.has(act.id);
             return (
-              <li key={session.id} className="border-b pb-2">
-                <span className="font-bold">{activity?.name || 'Borrado'}</span>
-                <span className="mx-2">|</span>
-                {new Date(session.startTime).toLocaleTimeString()} - {session.endTime ? new Date(session.endTime).toLocaleTimeString() : '...'}
-                <span className="mx-2">|</span>
-                Duración: {session.endTime ? ((session.endTime - session.startTime) / 1000).toFixed(1) : 0} seg
-              </li>
+              <button
+                key={act.id}
+                onClick={() => (isActive ? stopActivity(act.id) : startActivity(act.id))}
+                className={`p-4 rounded text-white font-bold text-left transition-all ${
+                  isActive ? 'ring-4 ring-green-400 scale-105' : ''
+                } ${act.color}`}
+              >
+                {act.name}
+                {isActive && (
+                  <span className="block text-sm font-light mt-1">Corriendo...</span>
+                )}
+              </button>
             );
           })}
-        </ul>
+        </div>
+
+        {/* Botón de STOP global */}
+        {activeActivities.length > 0 && (
+          <button
+            onClick={clearActiveActivities}
+            className="w-full bg-red-500 text-white py-4 rounded-xl font-bold text-xl hover:bg-red-600 mt-4"
+          >
+            DETENER TODAS LAS ACTIVIDADES
+          </button>
+        )}
       </div>
     </div>
   );

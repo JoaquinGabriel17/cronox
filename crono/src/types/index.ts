@@ -6,5 +6,6 @@ export interface Activity {
   endTime: number; // Timestamp de finalización 
   description?: string; // Descripción opcional
   timeLeft: number; // Tiempo restante
-  // como se podria decir tiempo restante en ingles?
+  isActive: boolean; // para saber si está activa.
+  stopTime?: number; // Timestamp de detención
 }
